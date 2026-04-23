@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import AuthGuard from '@/components/AuthGuard';
 import NavBar from '@/components/NavBar';
-import { BarChart3, AlertTriangle, TrendingUp } from 'lucide-react';
+import { BarChart3, AlertTriangle, TrendingUp, Trash2, X, Lock } from 'lucide-react';
 
 interface ReportItem {
   linenId: string;
@@ -38,6 +38,10 @@ function ReportsManager() {
   const [loading, setLoading] = useState(false);
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     const today = new Date();
@@ -54,6 +58,26 @@ function ReportsManager() {
     const data = await res.json();
     setReport(data);
     setLoading(false);
+  };
+
+  const handleReset = async () => {
+    if (!resetPassword.trim()) return;
+    setResetting(true);
+    setResetError('');
+    const res = await fetch('/api/reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: resetPassword.trim() }),
+    });
+    const data = await res.json();
+    setResetting(false);
+    if (data.success) {
+      setShowReset(false);
+      setResetPassword('');
+      window.location.reload();
+    } else {
+      setResetError(data.error || '重置失败');
+    }
   };
 
   useEffect(() => {
@@ -97,6 +121,76 @@ function ReportsManager() {
           </button>
         </div>
       </div>
+
+      {/* Reset System */}
+      <div className="mt-10 pt-6 border-t">
+        <button
+          onClick={() => setShowReset(true)}
+          className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition border border-red-200"
+        >
+          <Trash2 className="w-4 h-4" />
+          重置系统
+        </button>
+        <p className="text-xs text-gray-400 mt-2">
+          清空所有入住记录、布草消耗、清洁任务，并将库存和房间恢复为初始状态
+        </p>
+      </div>
+
+      {/* Reset Modal */}
+      {showReset && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-xl w-full max-w-sm">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                确认重置系统
+              </h2>
+              <button
+                onClick={() => { setShowReset(false); setResetPassword(''); setResetError(''); }}
+                className="p-1 hover:bg-gray-100 rounded-lg transition"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="bg-red-50 text-red-700 text-xs p-3 rounded-lg">
+                此操作不可撤销！将清空所有入住记录、布草消耗记录、清洁任务，并重置房间和库存到初始状态。
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  请输入员工密码确认
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    placeholder="员工密码"
+                    className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                </div>
+                {resetError && <p className="text-red-500 text-xs mt-1">{resetError}</p>}
+              </div>
+            </div>
+            <div className="flex gap-2 p-4 border-t">
+              <button
+                onClick={() => { setShowReset(false); setResetPassword(''); setResetError(''); }}
+                className="flex-1 py-2 text-sm text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleReset}
+                disabled={!resetPassword.trim() || resetting}
+                className="flex-1 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {resetting ? '重置中...' : '确认重置'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {report && (
         <div className="space-y-4">
