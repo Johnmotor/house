@@ -1,27 +1,46 @@
 import fs from 'fs';
 import path from 'path';
-import { Redis } from '@upstash/redis';
 import { AppData } from './types';
 
 const DATA_FILE = path.join(process.cwd(), 'data.json');
 const KV_KEY = 'bnb:data';
 
-// Try multiple env var names (Vercel Upstash Redis integration may use different names)
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
-const useRedis = Boolean(REDIS_URL && REDIS_TOKEN);
-
-let redis: Redis | null = null;
-if (useRedis) {
-  redis = new Redis({
-    url: REDIS_URL,
-    token: REDIS_TOKEN,
-  });
-}
+// Detect Redis integration type
+// 1. Vercel Redis (TCP): REDIS_URL
+// 2. Upstash Redis (HTTP REST): UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
+// 3. Vercel KV (legacy): KV_REST_API_URL + KV_REST_API_TOKEN
+const REDIS_URL = process.env.REDIS_URL || '';
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
 
 export async function readData(): Promise<AppData> {
-  if (redis) {
+  // 1. Try Vercel Redis (TCP)
+  if (REDIS_URL) {
     try {
+      const { createClient } = await import('redis');
+      const client = createClient({ url: REDIS_URL });
+      await client.connect();
+      try {
+        const raw = await client.get(KV_KEY);
+        if (!raw) {
+          const defaultData = getDefaultData();
+          await client.set(KV_KEY, JSON.stringify(defaultData));
+          return defaultData;
+        }
+        return JSON.parse(raw) as AppData;
+      } finally {
+        await client.disconnect();
+      }
+    } catch (err) {
+      console.error('[Redis TCP read error]', err);
+    }
+  }
+
+  // 2. Try Upstash Redis (HTTP REST)
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    try {
+      const { Redis } = await import('@upstash/redis');
+      const redis = new Redis({ url: UPSTASH_URL, token: UPSTASH_TOKEN });
       const data = await redis.get<AppData>(KV_KEY);
       if (!data) {
         const defaultData = getDefaultData();
@@ -30,12 +49,11 @@ export async function readData(): Promise<AppData> {
       }
       return data as AppData;
     } catch (err) {
-      console.error('[Redis read error]', err);
-      throw err;
+      console.error('[Upstash Redis read error]', err);
     }
   }
 
-  // Fallback: local file system (development)
+  // 3. Fallback: local file system (development)
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
     return JSON.parse(raw) as AppData;
@@ -45,16 +63,37 @@ export async function readData(): Promise<AppData> {
 }
 
 export async function writeData(data: AppData): Promise<void> {
-  if (redis) {
+  // 1. Try Vercel Redis (TCP)
+  if (REDIS_URL) {
     try {
-      await redis.set(KV_KEY, data);
+      const { createClient } = await import('redis');
+      const client = createClient({ url: REDIS_URL });
+      await client.connect();
+      try {
+        await client.set(KV_KEY, JSON.stringify(data));
+        return;
+      } finally {
+        await client.disconnect();
+      }
     } catch (err) {
-      console.error('[Redis write error]', err);
-      throw err;
+      console.error('[Redis TCP write error]', err);
     }
-  } else {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
   }
+
+  // 2. Try Upstash Redis (HTTP REST)
+  if (UPSTASH_URL && UPSTASH_TOKEN) {
+    try {
+      const { Redis } = await import('@upstash/redis');
+      const redis = new Redis({ url: UPSTASH_URL, token: UPSTASH_TOKEN });
+      await redis.set(KV_KEY, data);
+      return;
+    } catch (err) {
+      console.error('[Upstash Redis write error]', err);
+    }
+  }
+
+  // 3. Fallback
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 export function getDefaultData(): AppData {
@@ -83,6 +122,6 @@ export function getDefaultData(): AppData {
 }
 
 // Initialize local data.json if not exists (dev only)
-if (!useRedis && !fs.existsSync(DATA_FILE)) {
+if (!REDIS_URL && !(UPSTASH_URL && UPSTASH_TOKEN) && !fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(getDefaultData(), null, 2), 'utf-8');
 }
