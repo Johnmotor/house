@@ -6,28 +6,33 @@ import { AppData } from './types';
 const DATA_FILE = path.join(process.cwd(), 'data.json');
 const KV_KEY = 'bnb:data';
 
-// Detect Upstash Redis env (auto-injected by Vercel when integrated)
-const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-const useRedis = Boolean(UPSTASH_URL && UPSTASH_TOKEN);
+// Try multiple env var names (Vercel Upstash Redis integration may use different names)
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || '';
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
+const useRedis = Boolean(REDIS_URL && REDIS_TOKEN);
 
 let redis: Redis | null = null;
 if (useRedis) {
   redis = new Redis({
-    url: UPSTASH_URL!,
-    token: UPSTASH_TOKEN!,
+    url: REDIS_URL,
+    token: REDIS_TOKEN,
   });
 }
 
 export async function readData(): Promise<AppData> {
   if (redis) {
-    const data = await redis.get<AppData>(KV_KEY);
-    if (!data) {
-      const defaultData = getDefaultData();
-      await redis.set(KV_KEY, defaultData);
-      return defaultData;
+    try {
+      const data = await redis.get<AppData>(KV_KEY);
+      if (!data) {
+        const defaultData = getDefaultData();
+        await redis.set(KV_KEY, defaultData);
+        return defaultData;
+      }
+      return data as AppData;
+    } catch (err) {
+      console.error('[Redis read error]', err);
+      throw err;
     }
-    return data as AppData;
   }
 
   // Fallback: local file system (development)
@@ -41,7 +46,12 @@ export async function readData(): Promise<AppData> {
 
 export async function writeData(data: AppData): Promise<void> {
   if (redis) {
-    await redis.set(KV_KEY, data);
+    try {
+      await redis.set(KV_KEY, data);
+    } catch (err) {
+      console.error('[Redis write error]', err);
+      throw err;
+    }
   } else {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
   }
