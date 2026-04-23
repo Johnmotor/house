@@ -17,7 +17,7 @@ export async function POST(
     return NextResponse.json({ error: '缺少操作人' }, { status: 400 });
   }
 
-  const data = readData();
+  const data = await readData();
   const room = data.rooms.find((r) => r.id === id);
   if (!room) {
     return NextResponse.json({ error: '房间不存在' }, { status: 404 });
@@ -81,7 +81,7 @@ export async function POST(
   };
   data.cleaningTasks.push(task);
 
-  writeData(data);
+  await writeData(data);
 
   return NextResponse.json({
     success: true,

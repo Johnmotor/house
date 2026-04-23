@@ -3,7 +3,7 @@ import { readData, writeData } from '@/lib/data';
 import { Booking } from '@/lib/types';
 
 export async function GET() {
-  const data = readData();
+  const data = await readData();
   return NextResponse.json({ bookings: data.bookings });
 }
 
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '缺少必要字段' }, { status: 400 });
   }
 
-  const data = readData();
+  const data = await readData();
   const room = data.rooms.find((r) => r.id === roomId);
   if (!room) {
     return NextResponse.json({ error: '房间不存在' }, { status: 404 });
@@ -39,6 +39,6 @@ export async function POST(request: NextRequest) {
   room.status = 'occupied';
   room.currentBookingId = booking.id;
 
-  writeData(data);
+  await writeData(data);
   return NextResponse.json({ success: true, booking });
 }

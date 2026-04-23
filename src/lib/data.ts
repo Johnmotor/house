@@ -1,10 +1,36 @@
 import fs from 'fs';
 import path from 'path';
+import { Redis } from '@upstash/redis';
 import { AppData } from './types';
 
 const DATA_FILE = path.join(process.cwd(), 'data.json');
+const KV_KEY = 'bnb:data';
 
-export function readData(): AppData {
+// Detect Upstash Redis env (auto-injected by Vercel when integrated)
+const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
+const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const useRedis = Boolean(UPSTASH_URL && UPSTASH_TOKEN);
+
+let redis: Redis | null = null;
+if (useRedis) {
+  redis = new Redis({
+    url: UPSTASH_URL!,
+    token: UPSTASH_TOKEN!,
+  });
+}
+
+export async function readData(): Promise<AppData> {
+  if (redis) {
+    const data = await redis.get<AppData>(KV_KEY);
+    if (!data) {
+      const defaultData = getDefaultData();
+      await redis.set(KV_KEY, defaultData);
+      return defaultData;
+    }
+    return data as AppData;
+  }
+
+  // Fallback: local file system (development)
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf-8');
     return JSON.parse(raw) as AppData;
@@ -13,8 +39,12 @@ export function readData(): AppData {
   }
 }
 
-export function writeData(data: AppData): void {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+export async function writeData(data: AppData): Promise<void> {
+  if (redis) {
+    await redis.set(KV_KEY, data);
+  } else {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  }
 }
 
 export function getDefaultData(): AppData {
@@ -42,7 +72,7 @@ export function getDefaultData(): AppData {
   };
 }
 
-// Initialize data.json if not exists
-if (!fs.existsSync(DATA_FILE)) {
-  writeData(getDefaultData());
+// Initialize local data.json if not exists (dev only)
+if (!useRedis && !fs.existsSync(DATA_FILE)) {
+  fs.writeFileSync(DATA_FILE, JSON.stringify(getDefaultData(), null, 2), 'utf-8');
 }

@@ -1,22 +1,185 @@
 {
   "rooms": [
-    { "id": "r1", "number": "101", "type": "suite", "status": "idle" },
-    { "id": "r2", "number": "102", "type": "suite", "status": "idle" },
-    { "id": "r3", "number": "103", "type": "suite", "status": "idle" },
-    { "id": "r4", "number": "104", "type": "suite", "status": "idle" },
-    { "id": "r5", "number": "105", "type": "suite", "status": "idle" },
-    { "id": "r6", "number": "106", "type": "suite", "status": "idle" },
-    { "id": "r7", "number": "107", "type": "suite", "status": "idle" }
+    {
+      "id": "r1",
+      "number": "101",
+      "type": "suite",
+      "status": "idle"
+    },
+    {
+      "id": "r2",
+      "number": "102",
+      "type": "suite",
+      "status": "idle"
+    },
+    {
+      "id": "r3",
+      "number": "103",
+      "type": "suite",
+      "status": "idle"
+    },
+    {
+      "id": "r4",
+      "number": "104",
+      "type": "suite",
+      "status": "idle"
+    },
+    {
+      "id": "r5",
+      "number": "105",
+      "type": "suite",
+      "status": "idle"
+    },
+    {
+      "id": "r6",
+      "number": "106",
+      "type": "suite",
+      "status": "idle"
+    },
+    {
+      "id": "r7",
+      "number": "107",
+      "type": "suite",
+      "status": "idle"
+    }
   ],
-  "bookings": [],
+  "bookings": [
+    {
+      "id": "b_1776921328845",
+      "roomId": "r1",
+      "roomNumber": "101",
+      "guestName": "jj",
+      "checkInDate": "2026-04-23",
+      "checkOutDate": "2026-04-23",
+      "status": "checked_out",
+      "createdAt": "2026-04-23T05:15:28.845Z"
+    }
+  ],
   "linens": [
-    { "id": "l1", "name": "床单", "category": "bedding", "quantity": 50, "threshold": 15, "unit": "套", "standardUsage": { "single": 1, "double": 1, "suite": 1 } },
-    { "id": "l2", "name": "被套", "category": "bedding", "quantity": 45, "threshold": 12, "unit": "套", "standardUsage": { "single": 1, "double": 1, "suite": 1 } },
-    { "id": "l3", "name": "枕套", "category": "bedding", "quantity": 80, "threshold": 24, "unit": "个", "standardUsage": { "single": 2, "double": 2, "suite": 2 } },
-    { "id": "l4", "name": "毛巾", "category": "towel", "quantity": 60, "threshold": 20, "unit": "条", "standardUsage": { "single": 0, "double": 0, "suite": 0 } },
-    { "id": "l5", "name": "浴巾", "category": "towel", "quantity": 35, "threshold": 10, "unit": "条", "standardUsage": { "single": 0, "double": 0, "suite": 0 } },
-    { "id": "l6", "name": "地巾", "category": "towel", "quantity": 30, "threshold": 10, "unit": "条", "standardUsage": { "single": 0, "double": 0, "suite": 0 } }
+    {
+      "id": "l1",
+      "name": "床单",
+      "category": "bedding",
+      "quantity": 49,
+      "threshold": 15,
+      "unit": "套",
+      "standardUsage": {
+        "single": 1,
+        "double": 1,
+        "suite": 1
+      }
+    },
+    {
+      "id": "l2",
+      "name": "被套",
+      "category": "bedding",
+      "quantity": 44,
+      "threshold": 12,
+      "unit": "套",
+      "standardUsage": {
+        "single": 1,
+        "double": 1,
+        "suite": 1
+      }
+    },
+    {
+      "id": "l3",
+      "name": "枕套",
+      "category": "bedding",
+      "quantity": 78,
+      "threshold": 24,
+      "unit": "个",
+      "standardUsage": {
+        "single": 2,
+        "double": 2,
+        "suite": 2
+      }
+    },
+    {
+      "id": "l4",
+      "name": "毛巾",
+      "category": "towel",
+      "quantity": 60,
+      "threshold": 20,
+      "unit": "条",
+      "standardUsage": {
+        "single": 0,
+        "double": 0,
+        "suite": 0
+      }
+    },
+    {
+      "id": "l5",
+      "name": "浴巾",
+      "category": "towel",
+      "quantity": 35,
+      "threshold": 10,
+      "unit": "条",
+      "standardUsage": {
+        "single": 0,
+        "double": 0,
+        "suite": 0
+      }
+    },
+    {
+      "id": "l6",
+      "name": "地巾",
+      "category": "towel",
+      "quantity": 30,
+      "threshold": 10,
+      "unit": "条",
+      "standardUsage": {
+        "single": 0,
+        "double": 0,
+        "suite": 0
+      }
+    }
   ],
-  "linenUsage": [],
-  "cleaningTasks": []
+  "linenUsage": [
+    {
+      "id": "u_1776921333915_l1",
+      "date": "2026-04-23",
+      "roomId": "r1",
+      "roomNumber": "101",
+      "linenId": "l1",
+      "linenName": "床单",
+      "quantity": 1,
+      "operator": "张三",
+      "bookingId": "b_1776921328845"
+    },
+    {
+      "id": "u_1776921333915_l2",
+      "date": "2026-04-23",
+      "roomId": "r1",
+      "roomNumber": "101",
+      "linenId": "l2",
+      "linenName": "被套",
+      "quantity": 1,
+      "operator": "张三",
+      "bookingId": "b_1776921328845"
+    },
+    {
+      "id": "u_1776921333915_l3",
+      "date": "2026-04-23",
+      "roomId": "r1",
+      "roomNumber": "101",
+      "linenId": "l3",
+      "linenName": "枕套",
+      "quantity": 2,
+      "operator": "张三",
+      "bookingId": "b_1776921328845"
+    }
+  ],
+  "cleaningTasks": [
+    {
+      "id": "c_1776921333915",
+      "roomId": "r1",
+      "roomNumber": "101",
+      "status": "completed",
+      "assignee": "张三",
+      "createdAt": "2026-04-23T05:15:33.915Z",
+      "bookingId": "b_1776921328845",
+      "completedAt": "2026-04-23T05:15:37.691Z"
+    }
+  ]
 }

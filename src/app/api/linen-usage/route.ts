@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const start = searchParams.get('start');
   const end = searchParams.get('end');
 
-  const data = readData();
+  const data = await readData();
   let usage = data.linenUsage;
 
   if (start && end) {

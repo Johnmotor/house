@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: '缺少 start 或 end 参数' }, { status: 400 });
   }
 
-  const data = readData();
+  const data = await readData();
 
   // Filter usage in range
   const usageInRange = data.linenUsage.filter(
