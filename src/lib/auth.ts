@@ -1,5 +1,5 @@
 const AUTH_KEY = 'bnb_auth';
-const PASSWORD = '2026'; // Simple password for demo
+const PASSWORD = '2026'; // 员工密码 // Simple password for demo
 
 export function isAuthenticated(): boolean {
   if (typeof window === 'undefined') return false;
