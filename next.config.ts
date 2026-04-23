@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Use Node.js runtime for API routes (file system writes)
 };
 
 export default nextConfig;
